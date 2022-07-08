@@ -53,9 +53,9 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 async function sendEmail(emailAddress: string, authChallenge: string) {
   const MAGIC_LINK = `${process.env.BASE_URL}?email=${emailAddress}&code=${authChallenge}`
 
-  const body = '${process.env.EMAIL_BODY}'.trim().replaceAll("$LINK", MAGIC_LINK).replaceAll("$PASSCODE", authChallenge)
-  const text = '${process.env.EMAIL_TEXT}'.trim().replaceAll("$LINK", MAGIC_LINK).replaceAll("$PASSCODE", authChallenge)
-  const subject = '${process.env.EMAIL_SUBJECT}'.trim().replaceAll("$LINK", MAGIC_LINK).replaceAll("$PASSCODE", authChallenge)
+  const body = `${process.env.EMAIL_BODY}`.trim().replace("#LINK#", MAGIC_LINK).replace("#PASSCODE#", authChallenge).replace("#EMAIL#", emailAddress)
+  const text = `${process.env.EMAIL_TEXT}`.trim().replace("#LINK#", MAGIC_LINK).replace("#PASSCODE#", authChallenge)
+  const subject = `${process.env.EMAIL_SUBJECT}`.trim().replace("#LINK#", MAGIC_LINK).replace("#PASSCODE#", authChallenge)
 
   const params: SES.SendEmailRequest = {
     Destination: { ToAddresses: [emailAddress] },
