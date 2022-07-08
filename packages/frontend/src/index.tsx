@@ -8,7 +8,7 @@ import authConfig from './cdk-exports.json'
 
 Amplify.configure({
   Auth: {
-    region: process.env.AWS_REGION || 'us-east-2',
+    region: process.env.AWS_REGION || 'us-west-1',
     userPoolId: authConfig.PasswordlessLoginStack.userPoolId,
     userPoolWebClientId: authConfig.PasswordlessLoginStack.clientId,
   },

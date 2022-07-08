@@ -50,19 +50,12 @@ export const handler: APIGatewayProxyHandler = async (event) => {
   }
 }
 
-const BASE_URL = `http://localhost:3000/verify`
-
 async function sendEmail(emailAddress: string, authChallenge: string) {
-  const MAGIC_LINK = `${BASE_URL}?email=${emailAddress}&code=${authChallenge}`
+  const MAGIC_LINK = `${process.env.BASE_URL}?email=${emailAddress}&code=${authChallenge}`
 
-  const html = `
-    <html><body>
-    <p>Here's your link:</p>
-    <h3>
-      <a target="_blank" rel="noopener noreferrer" href="${MAGIC_LINK}">Click to sign-in</a>
-    </h3>
-    </body></html>
-  `.trim()
+  const body = '${process.env.EMAIL_BODY}'.trim().replaceAll("$LINK", MAGIC_LINK).replaceAll("$PASSCODE", authChallenge)
+  const text = '${process.env.EMAIL_TEXT}'.trim().replaceAll("$LINK", MAGIC_LINK).replaceAll("$PASSCODE", authChallenge)
+  const subject = '${process.env.EMAIL_SUBJECT}'.trim().replaceAll("$LINK", MAGIC_LINK).replaceAll("$PASSCODE", authChallenge)
 
   const params: SES.SendEmailRequest = {
     Destination: { ToAddresses: [emailAddress] },
@@ -70,16 +63,16 @@ async function sendEmail(emailAddress: string, authChallenge: string) {
       Body: {
         Html: {
           Charset: 'UTF-8',
-          Data: html,
+          Data: body,
         },
         Text: {
           Charset: 'UTF-8',
-          Data: `Here's your link (copy and paste in the browser): ${MAGIC_LINK}`,
+          Data: text,
         },
       },
       Subject: {
         Charset: 'UTF-8',
-        Data: 'Login link',
+        Data: subject,
       },
     },
     Source: process.env.SES_FROM_ADDRESS,

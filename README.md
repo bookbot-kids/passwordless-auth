@@ -8,7 +8,7 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
 - Install dependencies using `yarn`
 - Rename `.example.env` to `.env` in `packages/backend` and replace the value in `SES_FROM_ADDRESS` to your verified email address in SES
-- Rename `.example.env` to `.env` in `packages/frontend` and replace the value in `AWS_REGION` to the region your stack is deployed to. Default is `us-east-2`
+- Rename `.example.env` to `.env` in `packages/frontend` and replace the value in `AWS_REGION` to the region your stack is deployed to. Default is `us-west-1`
 
 ## Useful commands
 

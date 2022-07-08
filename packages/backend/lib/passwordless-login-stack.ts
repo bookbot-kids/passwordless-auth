@@ -57,6 +57,10 @@ export class PasswordlessLoginStack extends cdk.Stack {
 
     const signIn = lambda(this, 'signIn')
       .addEnvironment('SES_FROM_ADDRESS', process.env.SES_FROM_ADDRESS)
+      .addEnvironment('BASE_URL', process.env.BASE_URL)
+      .addEnvironment('EMAIL_BODY', process.env.EMAIL_BODY)
+      .addEnvironment('EMAIL_TEXT', process.env.EMAIL_TEXT)
+      .addEnvironment('EMAIL_SUBJECT', process.env.EMAIL_SUBJECT)
       .addEnvironment('USER_POOL_ID', userPool.userPoolId)
 
     signIn.addToRolePolicy(
