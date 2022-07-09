@@ -38,7 +38,11 @@ export class PasswordlessLoginStack extends cdk.Stack {
         statements: [
           new iam.PolicyStatement({
             effect: iam.Effect.ALLOW,
-            actions: ['cognito-idp:AdminUpdateUserAttributes'],
+            actions: [
+              'cognito-idp:AdminUpdateUserAttributes',
+              'cognito-idp:AdminListGroupsForUser', 
+              'cognito-idp:AdminAddUserToGroup'
+            ],
             resources: [userPool.userPoolArn],
           }),
         ],
