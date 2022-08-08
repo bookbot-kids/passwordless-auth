@@ -2,11 +2,11 @@ import './helpers'
 import { expect as expectCDK, haveOutput } from '@aws-cdk/assert'
 import { TemplateAssertions } from '@aws-cdk/assertions'
 import * as cdk from '@aws-cdk/core'
-import { PasswordlessLoginStack } from '../lib/passwordless-login-stack'
+import { PasswordlessAuthStack } from '../lib/passwordless-login-stack'
 
 const synthStack = () => {
   const app = new cdk.App()
-  return new PasswordlessLoginStack(app, 'PasswordlessLogin')
+  return new PasswordlessAuthStack(app, 'PasswordlessAuth')
 }
 
 const OPTION_ENDPOINT = 1

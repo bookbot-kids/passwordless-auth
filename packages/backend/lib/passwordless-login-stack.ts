@@ -4,16 +4,19 @@ import * as iam from '@aws-cdk/aws-iam'
 import * as apiGw from '@aws-cdk/aws-apigateway'
 import { lambda } from './helpers'
 
-export class PasswordlessLoginStack extends cdk.Stack {
+export class PasswordlessAuthStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
     const postAuthentication = lambda(this, 'postAuthentication')
 
     // User Pool and client
-    const userPool = new cg.UserPool(this, 'users', {
+    const userPool = new cg.UserPool(this, 'usersPool', {
       standardAttributes: { email: { required: true, mutable: true } },
       customAttributes: {
         authChallenge: new cg.StringAttribute({ mutable: true }),
+        userId: new cg.StringAttribute({ mutable: true }),
+        country: new cg.StringAttribute({ mutable: true }),
+        ipAddress: new cg.StringAttribute({ mutable: true }),
       },
       passwordPolicy: {
         requireDigits: false,
@@ -56,7 +59,7 @@ export class PasswordlessLoginStack extends cdk.Stack {
     const api = new apiGw.RestApi(this, 'authApi', {
       endpointConfiguration: { types: [apiGw.EndpointType.REGIONAL] },
       defaultCorsPreflightOptions: { allowOrigins: ['*'] },
-      deployOptions: { stageName: 'dev' },
+      deployOptions: { stageName: 'auth' },
     })
 
     const signIn = lambda(this, 'signIn')

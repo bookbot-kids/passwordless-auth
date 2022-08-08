@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import 'source-map-support/register'
 import * as cdk from '@aws-cdk/core'
-import { PasswordlessLoginStack } from '../lib/passwordless-login-stack'
+import { PasswordlessAuthStack } from '../lib/passwordless-login-stack'
 
 const app = new cdk.App()
-new PasswordlessLoginStack(app, 'PasswordlessLoginStack', {
+new PasswordlessAuthStack(app, 'PasswordlessAuthStack', {
   env: { region: process.env.REGION || 'us-west-1' },
 })

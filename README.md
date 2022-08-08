@@ -17,7 +17,7 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 - `yarn workspace backend build` compile typescript to js
 - `yarn workspace backend watch` watch for changes and compile
 - `yarn workspace backend test` perform the jest unit tests
-- `yarn workspace backend cdk deploy` deploy this stack to your default AWS account/region
+- `yarn workspace backend cdk deploy --profile your_profile` deploy this stack to your default AWS account/region
 - `yarn workspace backend cdk diff` compare deployed stack with current state
 - `yarn workspace backend cdk synth` emits the synthesized CloudFormation template
 
