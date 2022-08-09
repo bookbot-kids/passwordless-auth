@@ -7,5 +7,7 @@ declare namespace NodeJS {
     EMAIL_TEXT: string
     EMAIL_SUBJECT: string
     USER_POOL_ID: string
+    PASSCODE_TIMEOUT: string
+    AUTHENTICATION_CODE: string // code to protect functions from unauthorized access
   }
 }

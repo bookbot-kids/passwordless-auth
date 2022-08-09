@@ -30,7 +30,7 @@ export class PasswordlessAuthStack extends cdk.Stack {
         preSignUp: lambda(this, 'preSignup'),
         createAuthChallenge: lambda(this, 'createAuthChallenge'),
         defineAuthChallenge: lambda(this, 'defineAuthChallenge'),
-        verifyAuthChallengeResponse: lambda(this, 'verifyAuthChallenge'),
+        verifyAuthChallengeResponse: lambda(this, 'verifyAuthChallenge').addEnvironment('PASSCODE_TIMEOUT', process.env.PASSCODE_TIMEOUT),
         postAuthentication,
       },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -56,12 +56,14 @@ export class PasswordlessAuthStack extends cdk.Stack {
       authFlows: { custom: true },
     })
 
+    // api gate way
     const api = new apiGw.RestApi(this, 'authApi', {
       endpointConfiguration: { types: [apiGw.EndpointType.REGIONAL] },
       defaultCorsPreflightOptions: { allowOrigins: ['*'] },
       deployOptions: { stageName: 'auth' },
     })
 
+    // sign in function with passcode challenge
     const signIn = lambda(this, 'signIn')
       .addEnvironment('SES_FROM_ADDRESS', process.env.SES_FROM_ADDRESS)
       .addEnvironment('BASE_URL', process.env.BASE_URL)
@@ -69,6 +71,7 @@ export class PasswordlessAuthStack extends cdk.Stack {
       .addEnvironment('EMAIL_TEXT', process.env.EMAIL_TEXT)
       .addEnvironment('EMAIL_SUBJECT', process.env.EMAIL_SUBJECT)
       .addEnvironment('USER_POOL_ID', userPool.userPoolId)
+      .addEnvironment('AUTHENTICATION_CODE', process.env.AUTHENTICATION_CODE)
 
     signIn.addToRolePolicy(
       new iam.PolicyStatement({
@@ -86,7 +89,26 @@ export class PasswordlessAuthStack extends cdk.Stack {
     )
 
     const signInMethod = new apiGw.LambdaIntegration(signIn)
-    api.root.addMethod('POST', signInMethod)
+    const signInApiResource = api.root.addResource('signIn')
+    signInApiResource.addMethod('POST', signInMethod)
+
+    // verify passcode challenge function
+    const verifyPasscode = lambda(this, 'verify')
+      .addEnvironment('USER_POOL_ID', userPool.userPoolId)
+      .addEnvironment('PASSCODE_TIMEOUT', process.env.PASSCODE_TIMEOUT)
+      .addEnvironment('AUTHENTICATION_CODE', process.env.AUTHENTICATION_CODE)
+    
+    verifyPasscode.addToRolePolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['cognito-idp:AdminGetUser'],
+          resources: [userPool.userPoolArn],
+        })
+    )
+
+    const verifyPasscodeMethod = new apiGw.LambdaIntegration(verifyPasscode)
+    const verifyPasscodeApiResource = api.root.addResource('verify')
+    verifyPasscodeApiResource.addMethod('POST', verifyPasscodeMethod)  
 
     new cdk.CfnOutput(this, 'userPoolId', {
       value: userPool.userPoolId,

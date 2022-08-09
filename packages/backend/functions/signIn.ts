@@ -7,8 +7,27 @@ const ses = new SES({ region: process.env.AWS_REGION })
 
 export const handler: APIGatewayProxyHandler = async (event) => {
   try {
-    const { email } = JSON.parse(event.body || '{}')
-    if (!email) throw Error()
+    const body = JSON.parse(event.body || '{}')
+    const email = body['email']
+    const authCode = body['code']
+    
+    if (!authCode || process.env.AUTHENTICATION_CODE !== authCode) {
+      return {
+          statusCode: 401,
+          body: JSON.stringify({
+          message: 'Authentication code is invalid'
+          })
+      }
+    }
+
+    if(!email) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({
+            message: 'Missing email'
+            })
+        }
+    }
 
     // set the code in custom attributes
     const authChallenge = randomDigits(6).join('')

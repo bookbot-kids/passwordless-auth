@@ -1,7 +1,5 @@
 import { VerifyAuthChallengeResponseTriggerHandler } from 'aws-lambda'
 
-const MAGIC_LINK_TIMEOUT = 3 * 60 * 1000
-
 export const handler: VerifyAuthChallengeResponseTriggerHandler = async (
   event
 ) => {
@@ -15,10 +13,11 @@ export const handler: VerifyAuthChallengeResponseTriggerHandler = async (
     return event
   }
 
+  const PASSCODE_TIMEOUT = parseInt(process.env.PASSCODE_TIMEOUT || '180000')
   // is the correct challenge and is not expired
   if (
     event.request.challengeAnswer === authChallenge &&
-    Date.now() <= Number(timestamp) + MAGIC_LINK_TIMEOUT
+    Date.now() <= Number(timestamp) + PASSCODE_TIMEOUT
   ) {
     event.response.answerCorrect = true
     return event
