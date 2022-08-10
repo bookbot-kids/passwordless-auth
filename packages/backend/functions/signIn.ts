@@ -8,8 +8,9 @@ const ses = new SES({ region: process.env.AWS_REGION })
 export const handler: APIGatewayProxyHandler = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}')
-    const email = body['email']
+    var email = body['email']
     const authCode = body['code']
+    const language = body['language'] || 'en'
     
     if (!authCode || process.env.AUTHENTICATION_CODE !== authCode) {
       return {
@@ -29,6 +30,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         }
     }
 
+    email = email.toLowerCase()
+
     // set the code in custom attributes
     const authChallenge = randomDigits(6).join('')
     await cisp
@@ -43,8 +46,9 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         Username: email,
       })
       .promise()
-
-    await sendEmail(email, authChallenge)
+    
+      // send email
+    await sendEmail(email, authChallenge, language)
 
     return {
       statusCode: 200,
@@ -52,7 +56,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-        message: `A link has been sent to ${email}`,
+        message: `Passcode and url has been sent to ${email}`,
       }),
     }
   } catch (e) {
@@ -69,12 +73,43 @@ export const handler: APIGatewayProxyHandler = async (event) => {
   }
 }
 
-async function sendEmail(emailAddress: string, authChallenge: string) {
+async function sendEmail(emailAddress: string, authChallenge: string, language: string = 'en') {
   const MAGIC_LINK = `${process.env.BASE_URL}?email=${emailAddress}&code=${authChallenge}`
+  const bodyTexts = new Map<string, string>(
+    [
+      ['en',`
+<html><body>
+<p>Hi there,</p>
+<p>To verify ${emailAddress}, you can either enter the passcode:</p>
+<p><h1>${authChallenge}</h1></p>
+<p>Or use this <a target="_blank" rel="noopener noreferrer" href="${MAGIC_LINK}">link</a> to verify Bookbot on this device.</p>   
+</body></html>
+`.trim()],
+    ['id', `
+<html><body>
+<p>Hai,</p>
+<p>Untuk memverifikasi ${emailAddress}, Anda bisa memasukkan kode:</p>
+<p><h1>${authChallenge}</h1></p>
+<p>Atau gunakan <a target="_blank" rel="noopener noreferrer" href="${MAGIC_LINK}">tautan</a> ini untuk memverifikasi Bookbot pada perangkat ini.</p>   
+</body></html>
+`.trim()]
+    ]
+  );
 
-  const body = `${process.env.EMAIL_BODY}`.trim().replace("#LINK#", MAGIC_LINK).replace("#PASSCODE#", authChallenge).replace("#EMAIL#", emailAddress)
-  const text = `${process.env.EMAIL_TEXT}`.trim().replace("#LINK#", MAGIC_LINK).replace("#PASSCODE#", authChallenge)
-  const subject = `${process.env.EMAIL_SUBJECT}`.trim().replace("#LINK#", MAGIC_LINK).replace("#PASSCODE#", authChallenge)
+  const subjectTexts = new Map<string, string>(
+    [
+      ['en', 'Verify your email address'],
+      ['id', 'Verifikasi alamat email Anda'],
+    ]);
+
+  const addresses = new Map<string, string>([
+    ['en', `Team Bookbot <${process.env.SES_FROM_ADDRESS}>`],
+    ['id', `Tim Bookbot <${process.env.SES_FROM_ADDRESS}>`],
+  ])
+
+  const body = bodyTexts.get(language) || bodyTexts.get('en')!
+  const subject = subjectTexts.get(language) || subjectTexts.get('en')!
+  const sourceAddess = addresses.get(language) || addresses.get('en')!
 
   const params: SES.SendEmailRequest = {
     Destination: { ToAddresses: [emailAddress] },
@@ -82,11 +117,11 @@ async function sendEmail(emailAddress: string, authChallenge: string) {
       Body: {
         Html: {
           Charset: 'UTF-8',
-          Data: body,
+          Data: body ,
         },
         Text: {
           Charset: 'UTF-8',
-          Data: text,
+          Data: subject,
         },
       },
       Subject: {
@@ -94,7 +129,7 @@ async function sendEmail(emailAddress: string, authChallenge: string) {
         Data: subject,
       },
     },
-    Source: process.env.SES_FROM_ADDRESS,
+    Source: sourceAddess,
   }
   await ses.sendEmail(params).promise()
 }

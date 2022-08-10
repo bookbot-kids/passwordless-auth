@@ -7,7 +7,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
   try {
     const PASSCODE_TIMEOUT = parseInt(process.env.PASSCODE_TIMEOUT || '180000')
     const body = JSON.parse(event.body || '{}')
-    const email = body['email']
+    var email = body['email']
     const challengeAnswer = body['passcode']
     const authCode = body['code']
     if (!authCode || process.env.AUTHENTICATION_CODE !== authCode) {
@@ -36,6 +36,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
             })
         }
     }
+
+    email = email.toLowerCase()
 
     // get the code in custom attributes
     const resp = await cisp.adminGetUser({
