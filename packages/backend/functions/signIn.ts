@@ -79,18 +79,18 @@ async function sendEmail(emailAddress: string, authChallenge: string, language: 
     [
       ['en',`
 <html><body>
-<p>Hi there,</p>
-<p>To verify ${emailAddress}, you can either enter the passcode:</p>
-<p><h1>${authChallenge}</h1></p>
-<p>Or use this <a target="_blank" rel="noopener noreferrer" href="${MAGIC_LINK}">link</a> to verify Bookbot on this device.</p>   
+<p>Hi there,<br/><br/>
+To verify ${emailAddress}, you can either enter the passcode:<br/><br/>
+<span style="font-size:28pt">${authChallenge}</span><br/><br/>
+Or use this <a target="_blank" rel="noopener noreferrer" href="${MAGIC_LINK}">link</a> to verify Bookbot on this device.</p>   
 </body></html>
 `.trim()],
     ['id', `
 <html><body>
-<p>Hai,</p>
-<p>Untuk memverifikasi ${emailAddress}, Anda bisa memasukkan kode:</p>
-<p><h1>${authChallenge}</h1></p>
-<p>Atau gunakan <a target="_blank" rel="noopener noreferrer" href="${MAGIC_LINK}">tautan</a> ini untuk memverifikasi Bookbot pada perangkat ini.</p>   
+<p>Hai,<br/><br/>
+Untuk memverifikasi ${emailAddress}, Anda bisa memasukkan kode:<br/><br/>
+<span style="font-size:28pt">${authChallenge}</span><br/><br/>
+Atau gunakan <a target="_blank" rel="noopener noreferrer" href="${MAGIC_LINK}">tautan</a> ini untuk memverifikasi Bookbot pada perangkat ini.</p>   
 </body></html>
 `.trim()]
     ]
