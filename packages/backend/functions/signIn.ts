@@ -1,6 +1,7 @@
 import { APIGatewayProxyHandler } from 'aws-lambda'
 import { randomDigits } from 'crypto-secure-random-digit'
 import { CognitoIdentityServiceProvider, SES } from 'aws-sdk'
+import fetch from 'node-fetch';
 
 const cisp = new CognitoIdentityServiceProvider()
 const ses = new SES({ region: process.env.AWS_REGION })
@@ -47,8 +48,30 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       })
       .promise()
     
+    // generate magic link from firebase dynamic link
+    const deepLinkResponse = await fetch(`https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${process.env.FIREBASE_DYNAMIC_LINK_KEY}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      "dynamicLinkInfo": {
+        "domainUriPrefix": process.env.FIREBASE_DYNAMIC_LINK_URL,
+        "link": `${process.env.FIREBASE_DYNAMIC_LINK_URL}/p?email=${email}&passcode=${authChallenge}`,
+        "androidInfo": {"androidPackageName": process.env.ANDROID_PACKAGE_NAME},
+        "iosInfo": {
+          "iosBundleId": process.env.IOS_APP_BUNDLE,
+          "iosAppStoreId": process.env.IOS_APP_ID
+        },
+        "socialMetaTagInfo": {"socialTitle": process.env.APP_NAME}
+      }
+      }),
+    });
+  
+    const jsonText = await deepLinkResponse.text();
+    console.log(jsonText);
+    var jsonData = JSON.parse(jsonText);    
+    const magicLink = jsonData['shortLink']
+
       // send email
-    await sendEmail(email, authChallenge, language)
+    await sendEmail(magicLink, email, authChallenge, language)
 
     return {
       statusCode: 200,
@@ -73,8 +96,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
   }
 }
 
-async function sendEmail(emailAddress: string, authChallenge: string, language: string = 'en') {
-  const MAGIC_LINK = `${process.env.BASE_URL}?email=${emailAddress}&code=${authChallenge}`
+async function sendEmail(magicLink: string, emailAddress: string, authChallenge: string, language: string = 'en') { 
   const bodyTexts = new Map<string, string>(
     [
       ['en',`
@@ -82,7 +104,7 @@ async function sendEmail(emailAddress: string, authChallenge: string, language: 
 <p>Hi there,<br/><br/>
 To verify ${emailAddress}, you can either enter the passcode:<br/><br/>
 <span style="font-size:28pt">${authChallenge}</span><br/><br/>
-Or use this <a target="_blank" rel="noopener noreferrer" href="${MAGIC_LINK}">link</a> to verify Bookbot on this device.</p>   
+Or use this <a target="_blank" rel="noopener noreferrer" href="${magicLink}">link</a> to verify Bookbot on this device.</p>   
 </body></html>
 `.trim()],
     ['id', `
@@ -90,7 +112,7 @@ Or use this <a target="_blank" rel="noopener noreferrer" href="${MAGIC_LINK}">li
 <p>Hai,<br/><br/>
 Untuk memverifikasi ${emailAddress}, Anda bisa memasukkan kode:<br/><br/>
 <span style="font-size:28pt">${authChallenge}</span><br/><br/>
-Atau gunakan <a target="_blank" rel="noopener noreferrer" href="${MAGIC_LINK}">tautan</a> ini untuk memverifikasi Bookbot pada perangkat ini.</p>   
+Atau gunakan <a target="_blank" rel="noopener noreferrer" href="${magicLink}">tautan</a> ini untuk memverifikasi Bookbot pada perangkat ini.</p>   
 </body></html>
 `.trim()]
     ]

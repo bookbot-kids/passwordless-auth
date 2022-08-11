@@ -69,6 +69,12 @@ export class PasswordlessAuthStack extends cdk.Stack {
       .addEnvironment('BASE_URL', process.env.BASE_URL)
       .addEnvironment('USER_POOL_ID', userPool.userPoolId)
       .addEnvironment('AUTHENTICATION_CODE', process.env.AUTHENTICATION_CODE)
+      .addEnvironment('FIREBASE_DYNAMIC_LINK_KEY', process.env.FIREBASE_DYNAMIC_LINK_KEY)
+      .addEnvironment('FIREBASE_DYNAMIC_LINK_URL', process.env.FIREBASE_DYNAMIC_LINK_URL)
+      .addEnvironment('ANDROID_PACKAGE_NAME', process.env.ANDROID_PACKAGE_NAME)
+      .addEnvironment('IOS_APP_BUNDLE', process.env.IOS_APP_BUNDLE)
+      .addEnvironment('IOS_APP_ID', process.env.IOS_APP_ID)
+      .addEnvironment('APP_NAME', process.env.APP_NAME)
 
     signIn.addToRolePolicy(
       new iam.PolicyStatement({

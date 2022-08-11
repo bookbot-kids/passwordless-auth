@@ -6,5 +6,11 @@ declare namespace NodeJS {
     USER_POOL_ID: string
     PASSCODE_TIMEOUT: string
     AUTHENTICATION_CODE: string // code to protect functions from unauthorized access
+    FIREBASE_DYNAMIC_LINK_KEY: string
+    FIREBASE_DYNAMIC_LINK_URL: string
+    ANDROID_PACKAGE_NAME: string
+    IOS_APP_BUNDLE: string
+    IOS_APP_ID: string
+    APP_NAME: string
   }
 }
