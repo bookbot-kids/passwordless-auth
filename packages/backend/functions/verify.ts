@@ -5,7 +5,7 @@ const cisp = new CognitoIdentityServiceProvider()
 
 export const handler: APIGatewayProxyHandler = async (event) => {
   try {
-    const PASSCODE_TIMEOUT = parseInt(process.env.PASSCODE_TIMEOUT || '180000')
+    const PASSCODE_TIMEOUT = Number(process.env.PASSCODE_TIMEOUT || '1800000')
     const body = JSON.parse(event.body || '{}')
     var email = body['email']
     const challengeAnswer = body['passcode']
@@ -71,30 +71,41 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         }
     }
 
-   // is the correct challenge and is not expired   
-  if (
-    challengeAnswer === authChallenge &&
-    Date.now() <= Number(timestamp) + PASSCODE_TIMEOUT) {
-    return {
-        statusCode: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          message: `success`,
-        }),
+   // is the correct challenge and is not expired  
+   if(challengeAnswer === authChallenge) {
+      if(Date.now() <= Number(timestamp) + PASSCODE_TIMEOUT) {
+        return {
+          statusCode: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({
+            message: `success`,
+          }),
+        }
+      } else {
+        console.log(`timestamp ${timestamp}, timeout ${PASSCODE_TIMEOUT}, now ${Date.now()} `);
+        return {
+          statusCode: 401,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+          },
+          body: JSON.stringify({
+            message: `Passcode is expired`,
+          }),
+        }
       }
-  }
-
-  return {
-    statusCode: 401,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-    },
-    body: JSON.stringify({
-      message: `Passcode is invalid`,
-    }),
-  }
+   } else {
+    return {
+      statusCode: 401,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({
+        message: `Passcode is invalid`,
+      }),
+    }
+   }
     
   } catch (e) {
     console.error(e)
