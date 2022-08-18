@@ -12,6 +12,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     var email = body['email']
     const authCode = body['code']
     const language = body['language'] || 'en'
+    const disableEmail = body['disableEmail'] || 'false'
     
     if (!authCode || process.env.AUTHENTICATION_CODE !== authCode) {
       return {
@@ -47,6 +48,20 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         Username: email,
       })
       .promise()
+      
+    // return passcode and don't send email
+    if(disableEmail == 'true') {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({
+          message: `success`,
+          passcode: authChallenge,
+        }),
+      }
+    }
     
     // generate magic link from firebase dynamic link
     const deepLinkResponse = await fetch(`https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${process.env.FIREBASE_DYNAMIC_LINK_KEY}`, {
