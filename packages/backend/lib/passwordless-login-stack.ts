@@ -86,7 +86,7 @@ export class PasswordlessAuthStack extends cdk.Stack {
     signIn.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ['cognito-idp:AdminUpdateUserAttributes'],
+        actions: ['cognito-idp:AdminUpdateUserAttributes', 'cognito-idp:AdminGetUser'],
         resources: [userPool.userPoolArn],
       })
     )

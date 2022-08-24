@@ -48,6 +48,19 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         Username: email,
       })
       .promise()
+    
+    // get user id from preferred_username
+    var userId = ''
+    try{
+      const userResponse = await cisp.adminGetUser({
+        UserPoolId: process.env.USER_POOL_ID,
+        Username: email,
+      }).promise()  
+      
+      userId = userResponse.UserAttributes?.find(x => x.Name == 'preferred_username')?.Value || '';
+    }catch(e) {
+      console.error(e)
+    }    
       
     // return passcode and don't send email
     if(disableEmail == 'true') {
@@ -69,7 +82,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     body: JSON.stringify({
       "dynamicLinkInfo": {
         "domainUriPrefix": process.env.FIREBASE_DYNAMIC_LINK_URL,
-        "link": `${process.env.FIREBASE_DYNAMIC_LINK_URL}/p?email=${email}&passcode=${authChallenge}`,
+        "link": `${process.env.FIREBASE_DYNAMIC_LINK_URL}/p?email=${email}&passcode=${authChallenge}&id=${userId}`,
         "androidInfo": {"androidPackageName": process.env.ANDROID_PACKAGE_NAME},
         "iosInfo": {
           "iosBundleId": process.env.IOS_APP_BUNDLE,
