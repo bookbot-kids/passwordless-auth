@@ -94,9 +94,10 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     });
   
     const jsonText = await deepLinkResponse.text();
-    console.log(jsonText);
+   
     var jsonData = JSON.parse(jsonText);    
     const magicLink = jsonData['shortLink']
+    console.log(`deeplink ${magicLink}`);
 
       // send email
     await sendEmail(magicLink, email, authChallenge, language)
@@ -111,9 +112,9 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       }),
     }
   } catch (e) {
-    console.error(e)
+    console.error(`Sign in error ${email}, ${e}`)
     return {
-      statusCode: 400,
+      statusCode: 500,
       headers: {
         'Access-Control-Allow-Origin': '*',
       },
