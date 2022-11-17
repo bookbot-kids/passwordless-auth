@@ -7,7 +7,8 @@ import { lambda } from './helpers'
 export class PasswordlessAuthStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
-    const postAuthentication = lambda(this, 'postAuthentication')
+    const defaultFunctionTimeout = cdk.Duration.minutes(3)
+    const postAuthentication = lambda(this, 'postAuthentication', {timeout: defaultFunctionTimeout})
 
     // User Pool and client
     const userPool = new cg.UserPool(this, 'usersPool', {
@@ -27,10 +28,11 @@ export class PasswordlessAuthStack extends cdk.Stack {
       selfSignUpEnabled: true,
       signInAliases: { email: true },
       lambdaTriggers: {
-        preSignUp: lambda(this, 'preSignup'),
-        createAuthChallenge: lambda(this, 'createAuthChallenge'),
-        defineAuthChallenge: lambda(this, 'defineAuthChallenge'),
-        verifyAuthChallengeResponse: lambda(this, 'verifyAuthChallenge').addEnvironment('PASSCODE_TIMEOUT', process.env.PASSCODE_TIMEOUT),
+        preSignUp: lambda(this, 'preSignup', { timeout: defaultFunctionTimeout }),
+        createAuthChallenge: lambda(this, 'createAuthChallenge', { timeout: defaultFunctionTimeout }),
+        defineAuthChallenge: lambda(this, 'defineAuthChallenge', { timeout: defaultFunctionTimeout }),
+        verifyAuthChallengeResponse: lambda(this, 'verifyAuthChallenge', { timeout: defaultFunctionTimeout})
+        .addEnvironment('PASSCODE_TIMEOUT', process.env.PASSCODE_TIMEOUT),
         postAuthentication,
       },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -64,7 +66,7 @@ export class PasswordlessAuthStack extends cdk.Stack {
     })
 
     // sign in function with passcode challenge
-    const signIn = lambda(this, 'signIn')
+    const signIn = lambda(this, 'signIn', {timeout: defaultFunctionTimeout})
       .addEnvironment('SES_FROM_ADDRESS', process.env.SES_FROM_ADDRESS)
       .addEnvironment('BASE_URL', process.env.BASE_URL)
       .addEnvironment('USER_POOL_ID', userPool.userPoolId)
@@ -74,6 +76,11 @@ export class PasswordlessAuthStack extends cdk.Stack {
       .addEnvironment('ANDROID_PACKAGE_NAME', process.env.ANDROID_PACKAGE_NAME)
       .addEnvironment('IOS_APP_BUNDLE', process.env.IOS_APP_BUNDLE)
       .addEnvironment('IOS_APP_ID', process.env.IOS_APP_ID)
+      .addEnvironment('APP_SUB_DOMAIN', process.env.APP_SUB_DOMAIN)
+      .addEnvironment('ANDROID_ID_PACKAGE_NAME', process.env.ANDROID_ID_PACKAGE_NAME)
+      .addEnvironment('IOS_ID_APP_BUNDLE', process.env.IOS_ID_APP_BUNDLE)
+      .addEnvironment('IOS_ID_APP_ID', process.env.IOS_ID_APP_ID)
+      .addEnvironment('APP_ID_SUB_DOMAIN', process.env.APP_ID_SUB_DOMAIN)
       .addEnvironment('APP_NAME', process.env.APP_NAME)
 
     signIn.addToRolePolicy(
@@ -96,7 +103,7 @@ export class PasswordlessAuthStack extends cdk.Stack {
     signInApiResource.addMethod('POST', signInMethod)
 
     // verify passcode challenge function
-    const verifyPasscode = lambda(this, 'verify')
+    const verifyPasscode = lambda(this, 'verify', {timeout: defaultFunctionTimeout})
       .addEnvironment('USER_POOL_ID', userPool.userPoolId)
       .addEnvironment('PASSCODE_TIMEOUT', process.env.PASSCODE_TIMEOUT)
       .addEnvironment('AUTHENTICATION_CODE', process.env.AUTHENTICATION_CODE)

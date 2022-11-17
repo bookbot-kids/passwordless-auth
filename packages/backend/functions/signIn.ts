@@ -13,6 +13,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     const authCode = body['code']
     const language = body['language'] || 'en'
     const disableEmail = body['disableEmail'] || 'false'
+    const appId = body['app_id'] || ''
     
     if (!authCode || process.env.AUTHENTICATION_CODE !== authCode) {
       return {
@@ -77,16 +78,21 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     }
     
     // generate magic link from firebase dynamic link
+    const isIdApp = appId == process.env.IOS_ID_APP_BUNDLE || appId == process.env.ANDROID_ID_PACKAGE_NAME
+    const subUrl = isIdApp ? process.env.APP_ID_SUB_DOMAIN : process.env.APP_SUB_DOMAIN
+    const iOSBundleId = isIdApp ? process.env.IOS_ID_APP_BUNDLE: process.env.IOS_APP_BUNDLE
+    const iOSAppStoreId = isIdApp ? process.env.IOS_ID_APP_ID: process.env.IOS_APP_ID
+    const androidPackageName = isIdApp ? process.env.ANDROID_ID_PACKAGE_NAME: process.env.ANDROID_PACKAGE_NAME
     const deepLinkResponse = await fetch(`https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${process.env.FIREBASE_DYNAMIC_LINK_KEY}`, {
     method: 'POST',
     body: JSON.stringify({
       "dynamicLinkInfo": {
         "domainUriPrefix": process.env.FIREBASE_DYNAMIC_LINK_URL,
-        "link": `${process.env.FIREBASE_DYNAMIC_LINK_URL}/p?email=${email}&passcode=${authChallenge}&id=${userId}`,
-        "androidInfo": {"androidPackageName": process.env.ANDROID_PACKAGE_NAME},
+        "link": `${process.env.FIREBASE_DYNAMIC_LINK_URL}/${subUrl}?email=${email}&passcode=${authChallenge}&id=${userId}`,
+        "androidInfo": {"androidPackageName": androidPackageName},
         "iosInfo": {
-          "iosBundleId": process.env.IOS_APP_BUNDLE,
-          "iosAppStoreId": process.env.IOS_APP_ID
+          "iosBundleId": iOSBundleId,
+          "iosAppStoreId": iOSAppStoreId
         },
         "socialMetaTagInfo": {"socialTitle": process.env.APP_NAME}
       }
