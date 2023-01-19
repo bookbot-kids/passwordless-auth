@@ -78,23 +78,29 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     }
     
     // generate magic link from firebase dynamic link
+    const isReportApp = appId == process.env.REPORT_PACKAGE_NAME
     const isIdApp = appId == process.env.IOS_ID_APP_BUNDLE || appId == process.env.ANDROID_ID_PACKAGE_NAME
     const subUrl = isIdApp ? process.env.APP_ID_SUB_DOMAIN : process.env.APP_SUB_DOMAIN
-    const iOSBundleId = isIdApp ? process.env.IOS_ID_APP_BUNDLE: process.env.IOS_APP_BUNDLE
-    const iOSAppStoreId = isIdApp ? process.env.IOS_ID_APP_ID: process.env.IOS_APP_ID
-    const androidPackageName = isIdApp ? process.env.ANDROID_ID_PACKAGE_NAME: process.env.ANDROID_PACKAGE_NAME
-    const deepLinkResponse = await fetch(`https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${process.env.FIREBASE_DYNAMIC_LINK_KEY}`, {
+    const iOSBundleId = isReportApp ? process.env.IOS_REPORT_APP_BUNDLE : (isIdApp ? process.env.IOS_ID_APP_BUNDLE : process.env.IOS_APP_BUNDLE)
+    const iOSAppStoreId = isReportApp? process.env.IOS_REPORT_APP_ID :  (isIdApp ? process.env.IOS_ID_APP_ID: process.env.IOS_APP_ID)
+    const androidPackageName = isReportApp ? process.env.ANDROID_REPORT_PACKAGE_NAME :  (isIdApp ? process.env.ANDROID_ID_PACKAGE_NAME: process.env.ANDROID_PACKAGE_NAME)
+    const firebaseKey = isReportApp ? process.env.REPORT_FIREBASE_DYNAMIC_LINK_KEY :  process.env.FIREBASE_DYNAMIC_LINK_KEY
+    const domainUriPrefix = isReportApp ?  process.env.REPORT_FIREBASE_DYNAMIC_LINK_URL : process.env.FIREBASE_DYNAMIC_LINK_URL
+    const link = isReportApp ? process.env.REPORT_URL :  `${process.env.FIREBASE_DYNAMIC_LINK_URL}/${subUrl}`
+    const appName = isReportApp ? process.env.REPORT_APP_NAME : process.env.APP_NAME
+
+    const deepLinkResponse = await fetch(`https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${firebaseKey}`, {
     method: 'POST',
     body: JSON.stringify({
       "dynamicLinkInfo": {
-        "domainUriPrefix": process.env.FIREBASE_DYNAMIC_LINK_URL,
-        "link": `${process.env.FIREBASE_DYNAMIC_LINK_URL}/${subUrl}?email=${email}&passcode=${authChallenge}&id=${userId}`,
+        "domainUriPrefix": domainUriPrefix,
+        "link": `${link}?email=${email}&passcode=${authChallenge}&id=${userId}`,
         "androidInfo": {"androidPackageName": androidPackageName},
         "iosInfo": {
           "iosBundleId": iOSBundleId,
           "iosAppStoreId": iOSAppStoreId
         },
-        "socialMetaTagInfo": {"socialTitle": process.env.APP_NAME}
+        "socialMetaTagInfo": {"socialTitle": appName}
       }
       }),
     });
