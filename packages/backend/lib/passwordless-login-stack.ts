@@ -82,6 +82,14 @@ export class PasswordlessAuthStack extends cdk.Stack {
       .addEnvironment('IOS_ID_APP_ID', process.env.IOS_ID_APP_ID)
       .addEnvironment('APP_ID_SUB_DOMAIN', process.env.APP_ID_SUB_DOMAIN)
       .addEnvironment('APP_NAME', process.env.APP_NAME)
+      .addEnvironment('ANDROID_REPORT_PACKAGE_NAME', process.env.ANDROID_REPORT_PACKAGE_NAME)
+      .addEnvironment('IOS_REPORT_APP_BUNDLE', process.env.IOS_REPORT_APP_BUNDLE)
+      .addEnvironment('IOS_REPORT_APP_ID', process.env.IOS_REPORT_APP_ID)
+      .addEnvironment('APP_REPORT_SUB_DOMAIN', process.env.APP_REPORT_SUB_DOMAIN)
+      .addEnvironment('REPORT_FIREBASE_DYNAMIC_LINK_KEY', process.env.REPORT_FIREBASE_DYNAMIC_LINK_KEY)
+      .addEnvironment('REPORT_FIREBASE_DYNAMIC_LINK_URL', process.env.REPORT_FIREBASE_DYNAMIC_LINK_URL)
+      .addEnvironment('REPORT_URL', process.env.REPORT_URL)
+      .addEnvironment('REPORT_APP_NAME', process.env.REPORT_APP_NAME)
 
     signIn.addToRolePolicy(
       new iam.PolicyStatement({

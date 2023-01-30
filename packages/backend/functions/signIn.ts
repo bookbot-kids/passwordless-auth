@@ -78,7 +78,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     }
     
     // generate magic link from firebase dynamic link
-    const isReportApp = appId == process.env.REPORT_PACKAGE_NAME
+    const isReportApp = appId == process.env.ANDROID_REPORT_PACKAGE_NAME || appId == process.env.IOS_REPORT_APP_BUNDLE
     const isIdApp = appId == process.env.IOS_ID_APP_BUNDLE || appId == process.env.ANDROID_ID_PACKAGE_NAME
     const subUrl = isIdApp ? process.env.APP_ID_SUB_DOMAIN : process.env.APP_SUB_DOMAIN
     const iOSBundleId = isReportApp ? process.env.IOS_REPORT_APP_BUNDLE : (isIdApp ? process.env.IOS_ID_APP_BUNDLE : process.env.IOS_APP_BUNDLE)
