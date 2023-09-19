@@ -28,5 +28,10 @@ declare namespace NodeJS {
     REPORT_FIREBASE_DYNAMIC_LINK_URL: string
     REPORT_URL: string
     REPORT_APP_NAME: string
+
+    // Whatsapp
+    WHATSAPP_APP_ID: string
+    WHATSAPP_APP_KEY: string
+    WHATSAPP_TEMPLATE_NAME: string
   }
 }

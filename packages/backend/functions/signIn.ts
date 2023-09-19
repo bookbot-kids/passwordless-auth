@@ -14,6 +14,8 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     const language = body['language'] || 'en'
     const disableEmail = body['disableEmail'] || 'false'
     const appId = body['app_id'] || ''
+    const phone = body['phone'] || ''
+    const senderType = body['sender_type'] || 'email'
     
     if (!authCode || process.env.AUTHENTICATION_CODE !== authCode) {
       return {
@@ -62,7 +64,22 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     }catch(e) {
       console.error(e)
     }    
-      
+
+    // send whatsapp message
+    if(senderType == 'whatsapp') {
+      console.log(`send whatsapp message to  ${phone}`);
+      await sendWhatsapp(process.env.WHATSAPP_APP_ID, process.env.WHATSAPP_APP_KEY, process.env.WHATSAPP_TEMPLATE_NAME, phone, authChallenge, language)
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({
+          message: `Passcode and has been sent to ${phone}`,
+        }),
+      }
+    }
+       
     // return passcode and don't send email
     if(disableEmail == 'true') {
       return {
@@ -131,10 +148,56 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-        message: `Couldn't process the request. Please try after some time.`,
+        message: `Couldn't process the request. Error ${e}`,
       }),
     }
   }
+}
+
+async function sendWhatsapp(appId: string, token: string, templateName: string, phone: string, authChallenge: string, language: string = 'en') {
+  const response = await fetch(`https://graph.facebook.com/v17.0/${appId}/messages`, {
+    method: 'POST',
+    body: JSON.stringify({
+      "messaging_product": "whatsapp",
+      "recipient_type": "individual",
+      "to": phone,
+      "type": "template",
+      "template": {
+        "name": templateName, 
+        "language": {
+          "code": language
+        },
+      "components": [
+        {
+          "type": "body",
+          "parameters": [
+            {
+              "type": "text",
+              "text": authChallenge
+            }
+          ]
+        },
+        {
+          "type": "button",
+          "sub_type": "url",
+          "index": "0",
+          "parameters": [
+            {
+              "type": "text",
+              "text": authChallenge
+            }
+          ]
+        }
+      ]
+    }
+    }),
+    headers: {
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer ' + token
+    }
+   });
+  
+   return response.ok
 }
 
 async function sendEmail(magicLink: string, emailAddress: string, authChallenge: string, language: string = 'en') { 

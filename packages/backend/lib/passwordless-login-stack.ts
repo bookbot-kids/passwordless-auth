@@ -90,6 +90,9 @@ export class PasswordlessAuthStack extends cdk.Stack {
       .addEnvironment('REPORT_FIREBASE_DYNAMIC_LINK_URL', process.env.REPORT_FIREBASE_DYNAMIC_LINK_URL)
       .addEnvironment('REPORT_URL', process.env.REPORT_URL)
       .addEnvironment('REPORT_APP_NAME', process.env.REPORT_APP_NAME)
+      .addEnvironment('WHATSAPP_APP_ID', process.env.WHATSAPP_APP_ID)
+      .addEnvironment('WHATSAPP_APP_KEY', process.env.WHATSAPP_APP_KEY)
+      .addEnvironment('WHATSAPP_TEMPLATE_NAME', process.env.WHATSAPP_TEMPLATE_NAME)
 
     signIn.addToRolePolicy(
       new iam.PolicyStatement({
