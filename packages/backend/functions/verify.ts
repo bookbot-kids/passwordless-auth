@@ -45,9 +45,10 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         Username: email,
     }).promise()
 
-    const customAuthChallenge =  resp.UserAttributes?.find(a => a.Name === 'custom:authChallenge')?.Value
-   if(!customAuthChallenge) {
-    return {
+    const customAuthChallenge =  resp.UserAttributes?.find(a => a.Name === 'custom:authChallenge')?.Value || ''
+    const list = customAuthChallenge.split(';')
+    if(list.length == 0) {
+      return {
         statusCode: 401,
         headers: {
             'Access-Control-Allow-Origin': '*',
@@ -55,57 +56,41 @@ export const handler: APIGatewayProxyHandler = async (event) => {
           body: JSON.stringify({
             message: `No authentication found for ${email}`,
           }),
-    }
-   }
-
-   const [authChallenge, timestamp] = customAuthChallenge.split(',')
-    if (!authChallenge || !timestamp) {
-        return {
-            statusCode: 401,
-            headers: {
-            'Access-Control-Allow-Origin': '*',
-            },
-            body: JSON.stringify({
-            message: `No authentication found for ${email}`,
-            }),
-        }
-    }
-
-   // is the correct challenge and is not expired  
-   if(challengeAnswer === authChallenge) {
-      if(Date.now() <= Number(timestamp) + PASSCODE_TIMEOUT) {
-        return {
-          statusCode: 200,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-          },
-          body: JSON.stringify({
-            message: `success`,
-          }),
-        }
-      } else {
-        console.log(`timestamp ${timestamp}, timeout ${PASSCODE_TIMEOUT}, now ${Date.now()} `);
-        return {
-          statusCode: 401,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-          },
-          body: JSON.stringify({
-            message: `Passcode is expired`,
-          }),
-        }
       }
-   } else {
+    }
+
+    var errorMessage: string | null = null
+    for (var att of list) {
+      errorMessage = validate(challengeAnswer, att, PASSCODE_TIMEOUT)
+        if(!errorMessage) {
+          // if any valid
+          break
+        }
+    }
+
+    if(errorMessage) {
+      console.log(`validate failed  ${errorMessage}`);
+      // invalid
+      return {
+        statusCode: 401,
+        headers: {
+        'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({
+        message: `${errorMessage} for ${email}`,
+        }),
+      }
+    }
+
     return {
-      statusCode: 401,
+      statusCode: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
       },
       body: JSON.stringify({
-        message: `Passcode is invalid`,
+        message: `success`,
       }),
     }
-   }
     
   } catch (e) {
     console.error(e)
@@ -119,4 +104,22 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       }),
     }
   }
+}
+
+function validate(challengeAnswer: string, attribute: string, timeout: number): string | null {
+  const [authChallenge, timestamp] = attribute.split(',')
+    if (!authChallenge || !timestamp) {
+        return 'No authentication found'
+    }
+
+   // is the correct challenge and is not expired  
+   if(challengeAnswer === authChallenge) {
+      if(Date.now() <= Number(timestamp) + timeout) {
+        return null
+      } else {
+        return 'Passcode is expired'
+      }
+   } else {
+    return 'Passcode is invalid'
+   }
 }

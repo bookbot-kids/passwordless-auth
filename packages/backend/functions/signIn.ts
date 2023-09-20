@@ -8,6 +8,7 @@ const ses = new SES({ region: process.env.AWS_REGION })
 
 export const handler: APIGatewayProxyHandler = async (event) => {
   try {
+    const PASSCODE_TIMEOUT = Number(process.env.PASSCODE_TIMEOUT || '1800000')
     const body = JSON.parse(event.body || '{}')
     var email = body['email']
     const authCode = body['code']
@@ -37,33 +38,41 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     email = email.toLowerCase()
 
-    // set the code in custom attributes
+    // get current attribute
+    // get user id from preferred_username
+    const userResponse = await cisp.adminGetUser({
+      UserPoolId: process.env.USER_POOL_ID,
+      Username: email,
+    }).promise()  
+    
+    const userId = userResponse.UserAttributes?.find(x => x.Name == 'preferred_username')?.Value || '';
+
+    // get challenges
+    const currentChallengesAttribute =  userResponse.UserAttributes?.find(a => a.Name === 'custom:authChallenge')?.Value || ''
+
+    // remove expired ones
+    const challenges = currentChallengesAttribute.split(';').filter(item => {
+      const timestamp = Number(item.split(",")[1]);
+      return timestamp  + PASSCODE_TIMEOUT > Date.now();
+    });
+
+    // add new code into list
     const authChallenge = randomDigits(6).join('')
+    const newChallenge = `${authChallenge},${Date.now()}`
+    challenges.push(newChallenge)
+    // set to attribute
     await cisp
       .adminUpdateUserAttributes({
         UserAttributes: [
           {
             Name: 'custom:authChallenge',
-            Value: `${authChallenge},${Date.now()}`,
+            Value: challenges.join(';'),
           },
         ],
         UserPoolId: process.env.USER_POOL_ID,
         Username: email,
       })
       .promise()
-    
-    // get user id from preferred_username
-    var userId = ''
-    try{
-      const userResponse = await cisp.adminGetUser({
-        UserPoolId: process.env.USER_POOL_ID,
-        Username: email,
-      }).promise()  
-      
-      userId = userResponse.UserAttributes?.find(x => x.Name == 'preferred_username')?.Value || '';
-    }catch(e) {
-      console.error(e)
-    }    
 
     // send whatsapp message
     if(senderType == 'whatsapp') {
