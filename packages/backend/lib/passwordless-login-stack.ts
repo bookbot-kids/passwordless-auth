@@ -113,6 +113,26 @@ export class PasswordlessAuthStack extends cdk.Stack {
     const signInApiResource = api.root.addResource('signIn')
     signInApiResource.addMethod('POST', signInMethod)
 
+    // send invite message
+    const sendInviteMessage = lambda(this, 'sendInviteMessage', {timeout: defaultFunctionTimeout})
+      .addEnvironment('SES_FROM_ADDRESS', process.env.SES_FROM_ADDRESS)
+      .addEnvironment('AUTHENTICATION_CODE', process.env.AUTHENTICATION_CODE)
+      .addEnvironment('WHATSAPP_APP_ID', process.env.WHATSAPP_APP_ID)
+      .addEnvironment('WHATSAPP_APP_KEY', process.env.WHATSAPP_APP_KEY)
+      .addEnvironment('WHATSAPP_INVITE_TEMPLATE_NAME', process.env.WHATSAPP_INVITE_TEMPLATE_NAME)
+
+      sendInviteMessage.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['ses:SendEmail'],
+        resources: ['*'],
+      })
+    )
+
+    const sendInviteMessageMethod = new apiGw.LambdaIntegration(sendInviteMessage)
+    const sendInviteMessageResource = api.root.addResource('sendInviteMessage')
+    sendInviteMessageResource.addMethod('POST', sendInviteMessageMethod)
+
     // verify passcode challenge function
     const verifyPasscode = lambda(this, 'verify', {timeout: defaultFunctionTimeout})
       .addEnvironment('USER_POOL_ID', userPool.userPoolId)

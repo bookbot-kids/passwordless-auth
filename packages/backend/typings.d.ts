@@ -33,5 +33,6 @@ declare namespace NodeJS {
     WHATSAPP_APP_ID: string
     WHATSAPP_APP_KEY: string
     WHATSAPP_TEMPLATE_NAME: string
+    WHATSAPP_INVITE_TEMPLATE_NAME: string
   }
 }
