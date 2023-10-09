@@ -14,6 +14,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     const authCode = body['code']
     const language = body['language'] || 'en'
     const disableEmail = body['disableEmail'] || 'false'
+    const returnPasscode = body['returnPasscode'] || 'false'
     const appId = body['app_id'] || ''
     const phone = body['phone'] || ''
     const senderType = body['sender_type'] || 'email'
@@ -73,6 +74,20 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         Username: email,
       })
       .promise()
+   
+    // return passcode and don't send email or whatsapp
+    if(disableEmail == 'true' || returnPasscode == 'true') {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+        body: JSON.stringify({
+          message: `success`,
+          passcode: authChallenge,
+        }),
+      }
+    }
 
     // send whatsapp message
     if(senderType == 'whatsapp') {
@@ -85,20 +100,6 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         },
         body: JSON.stringify({
           message: `Passcode and has been sent to ${phone}`,
-        }),
-      }
-    }
-       
-    // return passcode and don't send email
-    if(disableEmail == 'true') {
-      return {
-        statusCode: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          message: `success`,
-          passcode: authChallenge,
         }),
       }
     }
@@ -120,7 +121,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     body: JSON.stringify({
       "dynamicLinkInfo": {
         "domainUriPrefix": domainUriPrefix,
-        "link": `${link}?email=${email}&passcode=${authChallenge}&id=${userId}`,
+        "link": `${link}?email=${email}&passcode=${authChallenge}&id=${userId}&type=email`,
         "androidInfo": {"androidPackageName": androidPackageName},
         "iosInfo": {
           "iosBundleId": iOSBundleId,
