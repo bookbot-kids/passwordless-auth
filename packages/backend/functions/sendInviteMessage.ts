@@ -51,12 +51,15 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       }
     }
 
+    const deepLinkParts = deepLink.split ("/");
+    const linkParam = deepLinkParts[deepLinkParts.length - 1];
+
     email = email.toLowerCase()
    
     // send whatsapp message
     if(senderType == 'whatsapp') {
       console.log(`send whatsapp message to  ${phone}`);
-      await sendWhatsapp(process.env.WHATSAPP_APP_ID, process.env.WHATSAPP_APP_KEY, process.env.WHATSAPP_INVITE_TEMPLATE_NAME, phone, name, deepLink, language)
+      await sendWhatsapp(process.env.WHATSAPP_APP_ID, process.env.WHATSAPP_APP_KEY, process.env.WHATSAPP_INVITE_TEMPLATE_NAME, phone, name, linkParam, language)
       return {
         statusCode: 200,
         headers: {
