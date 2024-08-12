@@ -147,12 +147,30 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 }
 
 async function generateBranchIODeeplink(appId: any, email: any, authChallenge: string, userId: string) {
-  const isReportApp = appId === process.env.ANDROID_REPORT_PACKAGE_NAME || appId === process.env.IOS_REPORT_APP_BUNDLE;
-  const isIdApp = appId === process.env.IOS_ID_APP_BUNDLE || appId === process.env.ANDROID_ID_PACKAGE_NAME;
-  
-  const branchKey = isIdApp ? process.env.BRANCHIO_ID_KEY : process.env.BRANCHIO_EN_KEY;
-  const appName = isReportApp ? process.env.REPORT_APP_NAME : process.env.APP_NAME;
-  const desktopUrl = isIdApp ? process.env.BRANCHIO_ID_URL : process.env.BRANCHIO_EN_URL;
+  let branchKey: string
+  let desktopUrl: string
+  let appName: string
+  if ([process.env.ANDROID_REPORT_PACKAGE_NAME, process.env.IOS_REPORT_APP_BUNDLE].indexOf(appId) !== -1){
+       // report
+       branchKey = process.env.BRANCHIO_REPORT_KEY
+       desktopUrl = process.env.BRANCHIO_REPORT_URL
+       appName = process.env.REPORT_APP_NAME
+    }   else if ([process.env.ANDROID_SW_PACKAGE_NAME, process.env.IOS_SW_APP_BUNDLE].indexOf(appId) !== -1){
+      // sw
+      branchKey = process.env.BRANCHIO_SW_KEY
+      desktopUrl = process.env.BRANCHIO_SW_URL
+      appName = process.env.APP_NAME
+    } else if ([process.env.IOS_ID_APP_BUNDLE, process.env.ANDROID_ID_PACKAGE_NAME].indexOf(appId) !== -1){
+       // id
+       branchKey = process.env.BRANCHIO_ID_KEY
+       desktopUrl = process.env.BRANCHIO_ID_URL
+       appName = process.env.APP_NAME
+    } else {
+      // en
+      branchKey = process.env.BRANCHIO_EN_KEY
+      desktopUrl = process.env.BRANCHIO_EN_URL
+      appName = process.env.APP_NAME
+    }
 
   const branchData = {
     branch_key: branchKey,

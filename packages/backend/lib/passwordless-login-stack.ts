@@ -79,6 +79,8 @@ export class PasswordlessAuthStack extends cdk.Stack {
       .addEnvironment('APP_SUB_DOMAIN', process.env.APP_SUB_DOMAIN)
       .addEnvironment('ANDROID_ID_PACKAGE_NAME', process.env.ANDROID_ID_PACKAGE_NAME)
       .addEnvironment('IOS_ID_APP_BUNDLE', process.env.IOS_ID_APP_BUNDLE)
+      .addEnvironment('ANDROID_SW_PACKAGE_NAME', process.env.ANDROID_SW_PACKAGE_NAME)
+      .addEnvironment('IOS_SW_APP_BUNDLE', process.env.IOS_SW_APP_BUNDLE)
       .addEnvironment('IOS_ID_APP_ID', process.env.IOS_ID_APP_ID)
       .addEnvironment('APP_ID_SUB_DOMAIN', process.env.APP_ID_SUB_DOMAIN)
       .addEnvironment('APP_NAME', process.env.APP_NAME)
@@ -96,9 +98,11 @@ export class PasswordlessAuthStack extends cdk.Stack {
       .addEnvironment('BRANCHIO_EN_KEY', process.env.BRANCHIO_EN_KEY)
       .addEnvironment('BRANCHIO_ID_KEY', process.env.BRANCHIO_ID_KEY)
       .addEnvironment('BRANCHIO_SW_KEY', process.env.BRANCHIO_SW_KEY)
+      .addEnvironment('BRANCHIO_REPORT_KEY', process.env.BRANCHIO_REPORT_KEY)
       .addEnvironment('BRANCHIO_EN_URL', process.env.BRANCHIO_EN_URL)
       .addEnvironment('BRANCHIO_ID_URL', process.env.BRANCHIO_ID_URL)
       .addEnvironment('BRANCHIO_SW_URL', process.env.BRANCHIO_SW_URL)
+      .addEnvironment('BRANCHIO_REPORT_URL', process.env.BRANCHIO_REPORT_URL)
 
     signIn.addToRolePolicy(
       new iam.PolicyStatement({

@@ -20,6 +20,9 @@ declare namespace NodeJS {
     IOS_ID_APP_ID: string
     APP_ID_SUB_DOMAIN: string
 
+    ANDROID_SW_PACKAGE_NAME: string
+    IOS_SW_APP_BUNDLE: string
+
     ANDROID_REPORT_PACKAGE_NAME: string
     IOS_REPORT_APP_BUNDLE: string
     IOS_REPORT_APP_ID: string
@@ -39,8 +42,10 @@ declare namespace NodeJS {
     BRANCHIO_EN_KEY: string
     BRANCHIO_ID_KEY: string
     BRANCHIO_SW_KEY: string
+    BRANCHIO_REPORT_KEY: string
     BRANCHIO_EN_URL: string
     BRANCHIO_ID_URL: string
     BRANCHIO_SW_URL: string
+    BRANCHIO_REPORT_URL: string
   }
 }
