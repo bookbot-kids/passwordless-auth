@@ -93,6 +93,12 @@ export class PasswordlessAuthStack extends cdk.Stack {
       .addEnvironment('WHATSAPP_APP_ID', process.env.WHATSAPP_APP_ID)
       .addEnvironment('WHATSAPP_APP_KEY', process.env.WHATSAPP_APP_KEY)
       .addEnvironment('WHATSAPP_TEMPLATE_NAME', process.env.WHATSAPP_TEMPLATE_NAME)
+      .addEnvironment('BRANCHIO_EN_KEY', process.env.BRANCHIO_EN_KEY)
+      .addEnvironment('BRANCHIO_ID_KEY', process.env.BRANCHIO_ID_KEY)
+      .addEnvironment('BRANCHIO_SW_KEY', process.env.BRANCHIO_SW_KEY)
+      .addEnvironment('BRANCHIO_EN_URL', process.env.BRANCHIO_EN_URL)
+      .addEnvironment('BRANCHIO_ID_URL', process.env.BRANCHIO_ID_URL)
+      .addEnvironment('BRANCHIO_SW_URL', process.env.BRANCHIO_SW_URL)
 
     signIn.addToRolePolicy(
       new iam.PolicyStatement({

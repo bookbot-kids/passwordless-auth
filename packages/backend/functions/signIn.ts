@@ -6,6 +6,10 @@ import fetch from 'node-fetch';
 const cisp = new CognitoIdentityServiceProvider()
 const ses = new SES({ region: process.env.AWS_REGION })
 
+interface BranchIOResponse {
+  url: string;
+}
+
 export const handler: APIGatewayProxyHandler = async (event) => {
   try {
     const PASSCODE_TIMEOUT = Number(process.env.PASSCODE_TIMEOUT || '1800000')
@@ -18,6 +22,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     const appId = body['app_id'] || ''
     const phone = body['phone'] || ''
     const senderType = body['sender_type'] || 'email'
+    const deeplinkType = body['link_type'] || 'firebase'
     
     if (!authCode || process.env.AUTHENTICATION_CODE !== authCode) {
       return {
@@ -104,38 +109,15 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       }
     }
     
-    // generate magic link from firebase dynamic link
-    const isReportApp = appId == process.env.ANDROID_REPORT_PACKAGE_NAME || appId == process.env.IOS_REPORT_APP_BUNDLE
-    const isIdApp = appId == process.env.IOS_ID_APP_BUNDLE || appId == process.env.ANDROID_ID_PACKAGE_NAME
-    const subUrl = isIdApp ? process.env.APP_ID_SUB_DOMAIN : process.env.APP_SUB_DOMAIN
-    const iOSBundleId = isReportApp ? process.env.IOS_REPORT_APP_BUNDLE : (isIdApp ? process.env.IOS_ID_APP_BUNDLE : process.env.IOS_APP_BUNDLE)
-    const iOSAppStoreId = isReportApp? process.env.IOS_REPORT_APP_ID :  (isIdApp ? process.env.IOS_ID_APP_ID: process.env.IOS_APP_ID)
-    const androidPackageName = isReportApp ? process.env.ANDROID_REPORT_PACKAGE_NAME :  (isIdApp ? process.env.ANDROID_ID_PACKAGE_NAME: process.env.ANDROID_PACKAGE_NAME)
-    const firebaseKey = isReportApp ? process.env.REPORT_FIREBASE_DYNAMIC_LINK_KEY :  process.env.FIREBASE_DYNAMIC_LINK_KEY
-    const domainUriPrefix = isReportApp ?  process.env.REPORT_FIREBASE_DYNAMIC_LINK_URL : process.env.FIREBASE_DYNAMIC_LINK_URL
-    const link = isReportApp ? process.env.REPORT_URL :  `${process.env.FIREBASE_DYNAMIC_LINK_URL}/${subUrl}`
-    const appName = isReportApp ? process.env.REPORT_APP_NAME : process.env.APP_NAME
+    // generate magic link 
+    let magicLink: string
+    if(deeplinkType == 'branchio') {
+      magicLink = await generateBranchIODeeplink(appId, email, authChallenge, userId);
+    } else {
+      // fallback to firebase
+      magicLink = await generateFirebaseDeeplink(appId, email, authChallenge, userId);
+    }
 
-    const deepLinkResponse = await fetch(`https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${firebaseKey}`, {
-    method: 'POST',
-    body: JSON.stringify({
-      "dynamicLinkInfo": {
-        "domainUriPrefix": domainUriPrefix,
-        "link": `${link}?email=${email}&passcode=${authChallenge}&id=${userId}&type=email`,
-        "androidInfo": {"androidPackageName": androidPackageName},
-        "iosInfo": {
-          "iosBundleId": iOSBundleId,
-          "iosAppStoreId": iOSAppStoreId
-        },
-        "socialMetaTagInfo": {"socialTitle": appName}
-      }
-      }),
-    });
-  
-    const jsonText = await deepLinkResponse.text();
-   
-    var jsonData = JSON.parse(jsonText);    
-    const magicLink = jsonData['shortLink']
     console.log(`deeplink ${magicLink}`);
 
       // send email
@@ -162,6 +144,82 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       }),
     }
   }
+}
+
+async function generateBranchIODeeplink(appId: any, email: any, authChallenge: string, userId: string) {
+  const isReportApp = appId === process.env.ANDROID_REPORT_PACKAGE_NAME || appId === process.env.IOS_REPORT_APP_BUNDLE;
+  const isIdApp = appId === process.env.IOS_ID_APP_BUNDLE || appId === process.env.ANDROID_ID_PACKAGE_NAME;
+  
+  const branchKey = isIdApp ? process.env.BRANCHIO_ID_KEY : process.env.BRANCHIO_EN_KEY;
+  const appName = isReportApp ? process.env.REPORT_APP_NAME : process.env.APP_NAME;
+  const desktopUrl = isIdApp ? process.env.BRANCHIO_ID_URL : process.env.BRANCHIO_EN_URL;
+
+  const branchData = {
+    branch_key: branchKey,
+    channel: 'auth',
+    feature: 'auth',
+    campaign: 'auth',
+    data: {
+      '$og_title': appName,      
+      'data': {
+        '$desktop_url': desktopUrl,
+        'email': email,
+        'passcode': authChallenge,
+        'id': userId,
+        'type': 'email',
+      }
+    }
+  };
+
+  const response = await fetch('https://api2.branch.io/v1/url', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(branchData)
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const jsonData = await response.json() as BranchIOResponse;
+  return jsonData.url;
+}
+
+async function generateFirebaseDeeplink(appId: any, email: any, authChallenge: string, userId: string) {
+  const isReportApp = appId == process.env.ANDROID_REPORT_PACKAGE_NAME || appId == process.env.IOS_REPORT_APP_BUNDLE;
+  const isIdApp = appId == process.env.IOS_ID_APP_BUNDLE || appId == process.env.ANDROID_ID_PACKAGE_NAME;
+  const subUrl = isIdApp ? process.env.APP_ID_SUB_DOMAIN : process.env.APP_SUB_DOMAIN;
+  const iOSBundleId = isReportApp ? process.env.IOS_REPORT_APP_BUNDLE : (isIdApp ? process.env.IOS_ID_APP_BUNDLE : process.env.IOS_APP_BUNDLE);
+  const iOSAppStoreId = isReportApp ? process.env.IOS_REPORT_APP_ID : (isIdApp ? process.env.IOS_ID_APP_ID : process.env.IOS_APP_ID);
+  const androidPackageName = isReportApp ? process.env.ANDROID_REPORT_PACKAGE_NAME : (isIdApp ? process.env.ANDROID_ID_PACKAGE_NAME : process.env.ANDROID_PACKAGE_NAME);
+  const firebaseKey = isReportApp ? process.env.REPORT_FIREBASE_DYNAMIC_LINK_KEY : process.env.FIREBASE_DYNAMIC_LINK_KEY;
+  const domainUriPrefix = isReportApp ? process.env.REPORT_FIREBASE_DYNAMIC_LINK_URL : process.env.FIREBASE_DYNAMIC_LINK_URL;
+  const link = isReportApp ? process.env.REPORT_URL : `${process.env.FIREBASE_DYNAMIC_LINK_URL}/${subUrl}`;
+  const appName = isReportApp ? process.env.REPORT_APP_NAME : process.env.APP_NAME;
+
+  const deepLinkResponse = await fetch(`https://firebasedynamiclinks.googleapis.com/v1/shortLinks?key=${firebaseKey}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      "dynamicLinkInfo": {
+        "domainUriPrefix": domainUriPrefix,
+        "link": `${link}?email=${email}&passcode=${authChallenge}&id=${userId}&type=email`,
+        "androidInfo": { "androidPackageName": androidPackageName },
+        "iosInfo": {
+          "iosBundleId": iOSBundleId,
+          "iosAppStoreId": iOSAppStoreId
+        },
+        "socialMetaTagInfo": { "socialTitle": appName }
+      }
+    }),
+  });
+
+  const jsonText = await deepLinkResponse.text();
+
+  var jsonData = JSON.parse(jsonText);
+  const magicLink = jsonData['shortLink'];  
+  return magicLink;
 }
 
 async function sendWhatsapp(appId: string, token: string, templateName: string, phone: string, authChallenge: string, language: string = 'en') {

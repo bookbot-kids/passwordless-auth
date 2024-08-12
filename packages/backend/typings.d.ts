@@ -34,5 +34,13 @@ declare namespace NodeJS {
     WHATSAPP_APP_KEY: string
     WHATSAPP_TEMPLATE_NAME: string
     WHATSAPP_INVITE_TEMPLATE_NAME: string
+
+    // branch io
+    BRANCHIO_EN_KEY: string
+    BRANCHIO_ID_KEY: string
+    BRANCHIO_SW_KEY: string
+    BRANCHIO_EN_URL: string
+    BRANCHIO_ID_URL: string
+    BRANCHIO_SW_URL: string
   }
 }
