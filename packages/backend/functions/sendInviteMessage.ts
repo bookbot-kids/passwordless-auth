@@ -187,7 +187,24 @@ Bookbot bersifat pribadi dan hanya guru Anda yang dapat melihat buku apa yang te
 
 <a target="_blank" rel="noopener noreferrer" href="${magicLink}">Sambung ke bookbot</a> 
 </body></html>
-`.trim()]
+`.trim()],
+['sw', `
+<html><body> 
+<p>Hujambo,<br/><br/>
+
+Umealikwa na mwalimu wa ${name} kudownload Bookbot. Kwa kudownload Bookbot,namekudownloadBookbot.KwakudownloadBookbot, ${name} ataweza:<br/><br/>
+
+Kupata maktaba ya vitabu maalum vilivyoundwa kukuza ujuzi wa kusoma<br/><br/>
+
+Kushiriki tuzo kati ya profaili yao ya darasani na nyumbani<br/><br/>
+
+Kumruhusu mwalimu wa ${name} kuona kazi yao ya nyumbani ya kusoma <br/><br/>
+
+Bookbot ni ya kibinafsi na ni mwalimu wako pekee anayeweza kuona vitabu ulivyosoma.<br/><br/>
+<a target="_blank" rel="noopener noreferrer" href="${magicLink}">Unganisha na Bookbot</a>
+
+</body></html>
+  `.trim()]
     ]
   );
 
@@ -195,11 +212,13 @@ Bookbot bersifat pribadi dan hanya guru Anda yang dapat melihat buku apa yang te
     [
       ['en', `${name}'s teacher has invited you to Bookbot`],
       ['id', `Guru ${name} telah mengundang Anda ke Bookbot`],
+      ['sw', `Mwalimu wa ${name} amekualika kwenye Bookbot `],
     ]);
 
   const addresses = new Map<string, string>([
     ['en', `Team Bookbot <${process.env.SES_FROM_ADDRESS}>`],
     ['id', `Tim Bookbot <${process.env.SES_FROM_ADDRESS}>`],
+    ['sw', `Timu ya Bookbot <${process.env.SES_FROM_ADDRESS}>`],
   ])
 
   const body = bodyTexts.get(language) || bodyTexts.get('en')!

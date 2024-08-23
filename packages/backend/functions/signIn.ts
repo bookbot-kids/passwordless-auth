@@ -304,7 +304,15 @@ Untuk memverifikasi ${emailAddress}, Anda bisa memasukkan kode:<br/><br/>
 <span style="font-size:28pt">${authChallenge}</span><br/><br/>
 Atau gunakan <a target="_blank" rel="noopener noreferrer" href="${magicLink}">tautan</a> ini untuk memverifikasi Bookbot pada perangkat ini.</p>   
 </body></html>
-`.trim()]
+`.trim()],
+['sw', `
+<html><body> 
+<p>Hujambo,<br/><br/> 
+Ili kuthibitisha ${emailAddress}, unaweza ama kuingiza nambari ya siri:<br/><br/> 
+<span style="font-size:28pt">${authChallenge}</span><br/><br/>
+Au tumia <a target="_blank" rel="noopener noreferrer" href="${magicLink}">kiungo hiki</a> kuthibitisha Bookbot kwenye kifaa hiki.</p>
+ </body></html>
+  `.trim()]
     ]
   );
 
@@ -312,11 +320,13 @@ Atau gunakan <a target="_blank" rel="noopener noreferrer" href="${magicLink}">ta
     [
       ['en', 'Verify your email address'],
       ['id', 'Verifikasi alamat email Anda'],
+      ['sw', 'Thibitisha anwani yako ya barua pepe'],
     ]);
 
   const addresses = new Map<string, string>([
     ['en', `Team Bookbot <${process.env.SES_FROM_ADDRESS}>`],
     ['id', `Tim Bookbot <${process.env.SES_FROM_ADDRESS}>`],
+    ['sw', `Timu ya Bookbot <${process.env.SES_FROM_ADDRESS}>`],
   ])
 
   const body = bodyTexts.get(language) || bodyTexts.get('en')!
