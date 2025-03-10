@@ -189,20 +189,40 @@ async function generateBranchIODeeplink(appId: any, email: any, authChallenge: s
     }
   };
 
-  const response = await fetch('https://api2.branch.io/v1/url', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(branchData)
-  });
+  
+  const maxRetries = 3; // Maximum number of retries
+  let attempt = 0;
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+  while (attempt < maxRetries) {
+    try {
+      const response = await fetch('https://api2.branch.io/v1/url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(branchData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const jsonData = await response.json() as BranchIOResponse;
+      return jsonData.url; // Success, return the URL
+    } catch (error) {
+      attempt++;
+      if (attempt === maxRetries) {
+        throw new Error(`Failed after ${maxRetries} attempts: ${error}`);
+      }
+
+      // Exponential backoff: wait 1s, 2s, 4s, etc., before retrying
+      const delayMs = Math.pow(2, attempt) * 1000;
+      console.log(`Retry attempt ${attempt}/${maxRetries} after ${delayMs}ms due to: ${error}`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
   }
 
-  const jsonData = await response.json() as BranchIOResponse;
-  return jsonData.url;
+  throw new Error('Unexpected error: retries exhausted without throwing');
 }
 
 async function generateFirebaseDeeplink(appId: any, email: any, authChallenge: string, userId: string) {
