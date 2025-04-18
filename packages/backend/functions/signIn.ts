@@ -148,27 +148,23 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
 async function generateBranchIODeeplink(appId: any, email: any, authChallenge: string, userId: string) {
   let branchKey: string
-  let desktopUrl: string
+  let desktopUrl: string = process.env.BRANCHIO_DESKTOP_DEEPVIEW
   let appName: string
   if ([process.env.ANDROID_REPORT_PACKAGE_NAME, process.env.IOS_REPORT_APP_BUNDLE].indexOf(appId) !== -1){
        // report
        branchKey = process.env.BRANCHIO_REPORT_KEY
-       desktopUrl = process.env.BRANCHIO_REPORT_URL
        appName = process.env.REPORT_APP_NAME
     }   else if ([process.env.ANDROID_SW_PACKAGE_NAME, process.env.IOS_SW_APP_BUNDLE].indexOf(appId) !== -1){
       // sw
       branchKey = process.env.BRANCHIO_SW_KEY
-      desktopUrl = process.env.BRANCHIO_SW_URL
       appName = process.env.APP_NAME
     } else if ([process.env.IOS_ID_APP_BUNDLE, process.env.ANDROID_ID_PACKAGE_NAME].indexOf(appId) !== -1){
        // id
        branchKey = process.env.BRANCHIO_ID_KEY
-       desktopUrl = process.env.BRANCHIO_ID_URL
        appName = process.env.APP_NAME
     } else {
       // en
       branchKey = process.env.BRANCHIO_EN_KEY
-      desktopUrl = process.env.BRANCHIO_EN_URL
       appName = process.env.APP_NAME
     }
 
@@ -180,11 +176,11 @@ async function generateBranchIODeeplink(appId: any, email: any, authChallenge: s
     data: {
       '$og_title': appName,      
       'data': {
-        '$desktop_url': desktopUrl,
         'email': email,
         'passcode': authChallenge,
         'id': userId,
         'type': 'email',
+        '$desktop_deepview': desktopUrl
       }
     }
   };

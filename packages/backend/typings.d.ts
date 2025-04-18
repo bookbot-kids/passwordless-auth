@@ -47,5 +47,6 @@ declare namespace NodeJS {
     BRANCHIO_ID_URL: string
     BRANCHIO_SW_URL: string
     BRANCHIO_REPORT_URL: string
+    BRANCHIO_DESKTOP_DEEPVIEW: string
   }
 }

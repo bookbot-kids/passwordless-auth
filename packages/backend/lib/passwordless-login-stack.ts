@@ -103,6 +103,7 @@ export class PasswordlessAuthStack extends cdk.Stack {
       .addEnvironment('BRANCHIO_ID_URL', process.env.BRANCHIO_ID_URL)
       .addEnvironment('BRANCHIO_SW_URL', process.env.BRANCHIO_SW_URL)
       .addEnvironment('BRANCHIO_REPORT_URL', process.env.BRANCHIO_REPORT_URL)
+      .addEnvironment('BRANCHIO_DESKTOP_DEEPVIEW', process.env.BRANCHIO_DESKTOP_DEEPVIEW)
 
     signIn.addToRolePolicy(
       new iam.PolicyStatement({
