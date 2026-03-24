@@ -328,7 +328,15 @@ Ili kuthibitisha ${emailAddress}, unaweza ama kuingiza nambari ya siri:<br/><br/
 <span style="font-size:28pt">${authChallenge}</span><br/><br/>
 Au tumia <a target="_blank" rel="noopener noreferrer" href="${magicLink}">kiungo hiki</a> kuthibitisha Bookbot kwenye kifaa hiki.</p>
  </body></html>
-  `.trim()]
+  `.trim()],
+    ['es', `
+<html><body>
+<p>Hola,<br/><br/>
+Para verificar ${emailAddress}, puedes ingresar el código:<br/><br/>
+<span style="font-size:28pt">${authChallenge}</span><br/><br/>
+O usa este <a target="_blank" rel="noopener noreferrer" href="${magicLink}">enlace</a> para verificar Bookbot en este dispositivo.</p>
+</body></html>
+`.trim()]
     ]
   );
 
@@ -337,12 +345,14 @@ Au tumia <a target="_blank" rel="noopener noreferrer" href="${magicLink}">kiungo
       ['en', 'Verify your email address'],
       ['id', 'Verifikasi alamat email Anda'],
       ['sw', 'Thibitisha anwani yako ya barua pepe'],
+      ['es', 'Verifica tu dirección de correo electrónico'],
     ]);
 
   const addresses = new Map<string, string>([
     ['en', `Team Bookbot <${process.env.SES_FROM_ADDRESS}>`],
     ['id', `Tim Bookbot <${process.env.SES_FROM_ADDRESS}>`],
     ['sw', `Timu ya Bookbot <${process.env.SES_FROM_ADDRESS}>`],
+    ['es', `Equipo Bookbot <${process.env.SES_FROM_ADDRESS}>`],
   ])
 
   const body = bodyTexts.get(language) || bodyTexts.get('en')!
