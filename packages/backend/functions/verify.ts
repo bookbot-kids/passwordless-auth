@@ -60,10 +60,12 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     }
 
     var errorMessage: string | null = null
-    for (var att of list) {
-      errorMessage = validate(challengeAnswer, att, PASSCODE_TIMEOUT)
+    var matchedIndex = -1
+    for (var i = 0; i < list.length; i++) {
+      errorMessage = validate(challengeAnswer, list[i], PASSCODE_TIMEOUT)
         if(!errorMessage) {
           // if any valid
+          matchedIndex = i
           break
         }
     }
@@ -81,6 +83,27 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         }),
       }
     }
+
+    // the passcode is single use, remove it from the list along with the expired ones
+    const remaining = list.filter((item, index) => {
+      if (index === matchedIndex) {
+        return false
+      }
+      const timestamp = Number(item.split(',')[1])
+      return timestamp + PASSCODE_TIMEOUT > Date.now()
+    })
+    await cisp
+      .adminUpdateUserAttributes({
+        UserAttributes: [
+          {
+            Name: 'custom:authChallenge',
+            Value: remaining.join(';'),
+          },
+        ],
+        UserPoolId: process.env.USER_POOL_ID,
+        Username: email,
+      })
+      .promise()
 
     return {
       statusCode: 200,

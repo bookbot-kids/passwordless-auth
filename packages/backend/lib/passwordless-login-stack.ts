@@ -9,6 +9,8 @@ export class PasswordlessAuthStack extends cdk.Stack {
     super(scope, id, props)
     const defaultFunctionTimeout = cdk.Duration.minutes(3)
     const postAuthentication = lambda(this, 'postAuthentication', {timeout: defaultFunctionTimeout})
+    const verifyAuthChallenge = lambda(this, 'verifyAuthChallenge', { timeout: defaultFunctionTimeout })
+      .addEnvironment('PASSCODE_TIMEOUT', process.env.PASSCODE_TIMEOUT)
 
     // User Pool and client
     const userPool = new cg.UserPool(this, 'usersPool', {
@@ -31,8 +33,7 @@ export class PasswordlessAuthStack extends cdk.Stack {
         preSignUp: lambda(this, 'preSignup', { timeout: defaultFunctionTimeout }),
         createAuthChallenge: lambda(this, 'createAuthChallenge', { timeout: defaultFunctionTimeout }),
         defineAuthChallenge: lambda(this, 'defineAuthChallenge', { timeout: defaultFunctionTimeout }),
-        verifyAuthChallengeResponse: lambda(this, 'verifyAuthChallenge', { timeout: defaultFunctionTimeout})
-        .addEnvironment('PASSCODE_TIMEOUT', process.env.PASSCODE_TIMEOUT),
+        verifyAuthChallengeResponse: verifyAuthChallenge,
         postAuthentication,
       },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -47,6 +48,21 @@ export class PasswordlessAuthStack extends cdk.Stack {
               'cognito-idp:AdminUpdateUserAttributes',
               'cognito-idp:AdminListGroupsForUser', 
               'cognito-idp:AdminAddUserToGroup'
+            ],
+            resources: [userPool.userPoolArn],
+          }),
+        ],
+      })
+    )
+
+    verifyAuthChallenge.role?.attachInlinePolicy(
+      new iam.Policy(this, 'allowConsumingPasscode', {
+        statements: [
+          new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: [
+              'cognito-idp:AdminGetUser',
+              'cognito-idp:AdminUpdateUserAttributes',
             ],
             resources: [userPool.userPoolArn],
           }),
@@ -153,7 +169,7 @@ export class PasswordlessAuthStack extends cdk.Stack {
     verifyPasscode.addToRolePolicy(
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
-          actions: ['cognito-idp:AdminGetUser'],
+          actions: ['cognito-idp:AdminGetUser', 'cognito-idp:AdminUpdateUserAttributes'],
           resources: [userPool.userPoolArn],
         })
     )
